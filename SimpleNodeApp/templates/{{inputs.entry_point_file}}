@@ -1,0 +1,2 @@
+console.log(`Project name: {{inputs.project_name}}`)
+console.log(`This is a simple app with Node.js.`)

@@ -1,0 +1,12 @@
+{
+  "name": "{{inputs.project_name | lower}}",
+  "version": "{{inputs.project_version}}",
+  "description": "{{inputs.project_description}}",
+  "author": "stk-zunit-nodejs",
+  "main": "{{inputs.entry_point_file}}",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node {{inputs.entry_point_file}}"
+  }
+}

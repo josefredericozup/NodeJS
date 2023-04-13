@@ -1,0 +1,49 @@
+name: SimpleNodeApp
+description: Template básico para uma aplicação Node.js
+types:
+  - app-template
+inputs:
+  - label: Qual o nome do projeto?
+    type: text
+    name: project_name
+    default: project-name
+  - label: Qual a versão do projeto?
+    type: text
+    name: project_version
+    default: 0.0.1
+  - label: Qual a descrição do projeto?
+    type: text
+    name: project_description
+    default: description
+  - label: Qual o arquivo de entrada do projeto?
+    type: text
+    name: entry_point_file
+    default: index.js
+  - label: Qual sistema de módulos deseja utilizar?
+    type: text
+    name: system_module
+    default: "CommonJS"
+    required: true
+    items:
+      - "CommonJS"
+      - "ES Modules"
+
+hooks:
+  - type: edit-json
+    trigger: after-render
+    path: package.json
+    indent: "\t"
+    encoding: utf-8
+    changes:
+      - jsonpath: "$"
+        update:
+          value: |
+            {
+            "type": "module"
+            }
+        when:
+            not-exists: "$.type"
+    condition:
+      variable: system_module
+      operator: "=="
+      value: "ES Modules"

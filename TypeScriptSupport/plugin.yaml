@@ -1,0 +1,135 @@
+name: TypeScriptSupport
+description: Adiciona suporte a TypeScript em um projeto.
+display-name: TypeScriptSupport
+picture: plugin.png
+category: Backend # Ref: https://docs.stackspot.com/docs/create-stacks/yaml-files/plugin/#category
+compatibility:
+  - Node
+about: docs/about.md
+usage: docs/usage.md
+use-case: docs/use-case.md
+implementation: docs/implementation.md
+technologies: # Ref: https://docs.stackspot.com/docs/create-stacks/yaml-files/yaml/#technologies
+  - "TypeScript"
+types:
+  - app
+inputs:
+  - label: Qual versão do TypeScript gostaria de utilizar?
+    type: text
+    name: ts_version
+    default: "latest"
+    required: true
+  - label: Gostaria de utilizar uma configuração base para o tsconfig.json?
+    type: bool
+    name: use_tsconfig_base
+    default: true
+    required: true
+  - label: Qual configuração base gostaria de utilizar?
+    type: text
+    name: tsconfig_base
+    deafult: Recommended
+    required: true
+    items:
+     - Recommended
+     - Node10
+     - Node12
+     - Node14
+     - Node16
+     - Node17
+     - Node18
+     - Node-LTS
+    condition:
+      variable: use_tsconfig_base
+      operator: "=="
+      value: true
+  - label: Gostaria de instalar as depêndencias durante o processo?
+    type: bool
+    name: install_dependencies
+    default: true
+    required: true
+  - label: Qual gerenciador de pacotes você deseja utilizar?
+    type: text
+    name: package_manager
+    items:
+      - NPM
+      - YARN
+    condition:
+      variable: install_dependencies
+      operator: "=="
+      value: true
+
+computed-inputs:
+  install_dependencies_with_npm: "{{ install_dependencies == true and package_manager == 'NPM' }}"
+  install_dependencies_with_yarn: "{{ install_dependencies == true and package_manager == 'YARN' }}"
+
+hooks:
+  - type: run-script
+    trigger: after-render
+    script: ./scripts/generate_tsconfig.py
+  - type: run-script
+    trigger: after-render
+    script: ./scripts/check_package_json.py
+  - type: edit-json
+    trigger: after-render
+    path: package.json
+    indent: "\t"
+    encoding: utf-8
+    changes:
+      - jsonpath: "$.scripts"
+        update:
+          value: |
+            {
+            "tsc": "node_modules/.bin/tsc"
+            }
+        when:
+            not-exists: "$.scripts.tsc"
+      - jsonpath: "$.scripts"
+        update:
+          value: |
+            {
+            "build": "tsc"
+            }
+          when:
+            not-exists: "$.scripts.build"
+    condition:
+      variable: package_json_exists
+      operator: "=="
+      value: True
+  - type: run
+    trigger: after-render
+    working-dir: "./"
+    linux:
+      - echo -e "\n- Instalando dependências...\n"
+      - npm install -D typescript
+      - echo -e "\n- Dependências intaladas com sucesso!\n"
+    windows:
+      - cmd /C echo -e "\n- Instalando dependências...\n"
+      - cmd /C npm install -D typescript
+      - cmd /C echo -e "\n- Dependências intaladas com sucesso!\n"
+    mac:
+      - echo -e "\n- Instalando dependências...\n"
+      - npm install -D typescript
+      - echo -e "\n- Dependências intaladas com sucesso!\n"
+    condition:
+      variable: install_dependencies_with_npm
+      operator: "=="
+      value: "True"
+  - type: run
+    trigger: after-render
+    working-dir: "./"
+    linux:
+      - echo -e "\n- Instalando dependências...\n"
+      - yarn add --dev typescript
+      - echo -e "\n- Dependências intaladas com sucesso!\n"
+    windows:
+      - cmd /C echo -e "\n- Instalando dependências...\n"
+      - cmd /C yarn add --dev typescript
+      - cmd /C echo -e "\n- Dependências intaladas com sucesso!\n"
+    mac:
+      - echo -e "\n- Instalando dependências...\n"
+      - yarn add --dev typescript
+      - echo -e "\n- Dependências intaladas com sucesso!\n"
+    condition:
+      variable: install_dependencies_with_yarn
+      operator: "=="
+      value: "True"
